@@ -48,7 +48,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         datefmt="%H:%M:%S")
-    assert torch.cuda.is_available(), "CUDA não disponível — abortando"
+    assert torch.cuda.is_available(), "CUDA não disponível - abortando"
     print(f"GPU: {torch.cuda.get_device_name(0)}")
     print(f"VRAM total: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 

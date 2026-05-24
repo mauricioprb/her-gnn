@@ -222,5 +222,31 @@
     "rmse_test": 0.12536578634749534,
     "n_features": 77,
     "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_034820",
+    "name": "mace_ft_stageC",
+    "run_dir": "results/runs/20260524_034820_mace_ft_stageC",
+    "r2_test": 0.940194412437788,
+    "mae_test": 0.08367637128933927,
+    "mse_test": 0.023497525069818843,
+    "rmse_test": 0.15328902462283087,
+    "n_params": 5016849,
+    "vram_peak_gb": 0.675,
+    "best_ckpt": "/home/mauricio/repositorios/her-gnn/logs/checkpoints/mace_ft_stageC/epoch=49-step=52750.ckpt",
+    "elapsed_sec": 2881.66
+  },
+  {
+    "timestamp": "20260524_050225",
+    "name": "mace_ft_stageA_plus",
+    "run_dir": "results/runs/20260524_050225_mace_ft_stageA_plus",
+    "r2_test": 0.944455018384222,
+    "mae_test": 0.07173569409191408,
+    "mse_test": 0.021823539425336897,
+    "rmse_test": 0.14772792364795795,
+    "n_params": 919041,
+    "vram_peak_gb": 0.879,
+    "best_ckpt": "/home/mauricio/repositorios/her-gnn/logs/checkpoints/mace_ft_stageA_plus/epoch=137-step=36432.ckpt",
+    "elapsed_sec": 2005.83
   }
 ]

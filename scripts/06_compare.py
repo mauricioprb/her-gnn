@@ -1,4 +1,4 @@
-"""Compare ETR vs SchNet from results/ only — never trains.
+"""Compare ETR vs SchNet from results/ only - never trains.
 
 Usage:
     uv run python scripts/06_compare.py
@@ -29,7 +29,7 @@ def latest_run(summary: list[dict], name_contains: str) -> dict | None:
 
 
 def _fmt(v) -> str:
-    return f"{v:.3f}" if isinstance(v, (int, float)) and v is not None else "—"
+    return f"{v:.3f}" if isinstance(v, (int, float)) and v is not None else "-"
 
 
 def comparison_table(entries: list[dict]) -> str:
@@ -40,7 +40,7 @@ def comparison_table(entries: list[dict]) -> str:
         params = e.get("n_params")
         rows.append(
             f"| {e['name']} | {_fmt(e.get('r2_test'))} | {_fmt(e.get('mae_test'))} | "
-            f"{_fmt(e.get('rmse_test'))} | {params if params else '—'} | "
+            f"{_fmt(e.get('rmse_test'))} | {params if params else '-'} | "
             f"{_fmt(e.get('elapsed_sec'))} |"
         )
     return header + "\n".join(rows) + "\n"

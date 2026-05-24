@@ -59,13 +59,13 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         datefmt="%H:%M:%S")
-    assert torch.cuda.is_available(), "CUDA não disponível — abortando"
+    assert torch.cuda.is_available(), "CUDA não disponível - abortando"
     print(f"GPU: {torch.cuda.get_device_name(0)}")
 
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if (args.output_dir / "train.npz").exists() and not args.force:
-        logger.info("train.npz já existe em %s — use --force para reextrair", args.output_dir)
+        logger.info("train.npz já existe em %s - use --force para reextrair", args.output_dir)
         return
 
     from mace.calculators import mace_mp
