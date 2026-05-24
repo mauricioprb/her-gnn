@@ -1,0 +1,38 @@
+model: ExtraTreesRegressor
+features:
+- phi
+- L_bond
+- Np0
+- Nd1
+- Out_e0
+- R0
+- First_IE0
+- CN
+- Out_e1
+- psi1
+n_features: 10
+n_train: 4688
+n_test: 1172
+test_size: 0.2
+cv_folds: 10
+random_state: 42
+param_grid:
+  n_estimators:
+  - 100
+  - 300
+  - 500
+  max_depth:
+  - null
+  - 10
+  - 20
+  min_samples_split:
+  - 2
+  - 5
+  min_samples_leaf:
+  - 1
+  - 2
+best_params:
+  max_depth: 20
+  min_samples_leaf: 1
+  min_samples_split: 2
+  n_estimators: 300

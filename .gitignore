@@ -19,3 +19,18 @@ data/metadata.sqlite
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Splits (regenerated, deterministic)
+data/splits.json
+
+# Training logs / checkpoints
+logs/
+
+# Results: keep summary.json, per-run metrics.json + config.yaml; ignore heavy artifacts
+results/figures/
+results/comparison_table.md
+results/runs/*/env.txt
+results/runs/*/predictions.parquet
+results/runs/*/embeddings*.npy
+results/runs/*/figures/
+results/runs/*/*.ckpt
