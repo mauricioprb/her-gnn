@@ -1,7 +1,7 @@
 [project]
-name = "her-gnn"
+name = "AETHER"
 version = "0.1.0"
-description = "HER catalyst prediction - Etapa 1: Catalysis Hub ingest + Extra Trees baseline"
+description = "AI-Equivariant Tool for Hydrogen Evolution Research"
 readme = "README.md"
 authors = [
     { name = "Mauricio", email = "mauprb@gmail.com" }
