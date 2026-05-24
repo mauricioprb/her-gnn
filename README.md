@@ -28,15 +28,24 @@ passam os filtros de metadata (~15min). Saidas: `data/raw/`,
 5860 estruturas curadas, mesmo split de teste (1172) para ambos os modelos.
 Fonte auditavel: `results/summary.json` (gerado pelos scripts, sem retreinar).
 
-| Modelo | R² test | MAE test | RMSE test | # params |
-|--------|---------|----------|-----------|----------|
-| ETR (10 features) | 0.934 | 0.096 | 0.161 | — |
-| SchNet (do zero)  | 0.908 | 0.060 | 0.190 | 455.809 |
+| Modelo | R² test | MAE test | RMSE test | # feat/params |
+|--------|---------|----------|-----------|---------------|
+| **ETR + MACE embeddings** | **0.961** | 0.072 | — | 512 |
+| ETR + MACE emb (top-20)   | 0.952 | 0.085 | — | 20 |
+| ETR (10 features handcrafted) | 0.934 | 0.096 | 0.161 | 10 |
+| SchNet (do zero)          | 0.908 | 0.060 | 0.190 | 455.809 |
+| ETR + MACE escalares      | 0.864 | 0.158 | — | 7 |
 
-SchNet (sem pretraining) iguala o ETR: R² um pouco menor (0.908 vs 0.934) mas
-MAE menor (0.060 vs 0.096). Responde a pergunta de banca: a arquitetura sozinha
-ja chega ao baseline de features; o ganho esperado do pretraining fica para a
-Etapa 3. VRAM pico no treino: 0.39 GB (batch 32).
+Ordenacao final: **embeddings MACE > handcrafted > SchNet > escalares MACE**.
+Os embeddings de no do MACE-MP-0 (potencial de fundacao) sao a melhor
+representacao para HER neste dataset; ate top-10 dims ja supera as 10 features
+handcrafted. SchNet do zero (sem pretraining) fica abaixo, confirmando que o
+ganho vem da representacao pre-treinada, nao so da arquitetura GNN.
+
+Nota: o R² do ETR re-ancorou de 0.910 (Etapa 1, ordem de linha pre-dedupe) para
+0.934 ao fixar o split canonico por id (`data/splits.json`), agora reproduzivel e
+compartilhado com todos os modelos. O `train_test_split` original dependia da
+ordem das linhas do SQLite, que mudou no rebuild com deduplicacao.
 
 Nota: o R² do ETR re-ancorou de 0.910 (Etapa 1, ordem de linha pre-dedupe) para
 0.934 ao fixar o split canonico por id (`data/splits.json`), agora reproduzivel e
@@ -56,10 +65,118 @@ uv run python scripts/04_build_graphs.py        # grafos PyG + data/splits.json
 uv run python scripts/05_train_schnet.py --smoke           # checagem rapida (<2min)
 uv run python scripts/05_train_schnet.py --run-name schnet_baseline
 uv run python scripts/06_compare.py             # tabela + figuras (sem GPU, <30s)
+# Etapa 3 - Tarefa 2 / Fase A.5 / Fase B
+uv run python scripts/07_extract_mace_features.py            # escalares MACE (GPU)
+uv run python scripts/08b_feature_reduction_sweep.py         # sweep escalares (Fase A.5)
+uv run python scripts/09_extract_mace_embeddings.py          # embeddings 512-dim (GPU)
+uv run python scripts/08b_feature_reduction_sweep.py --feature-set emb   # sweep embeddings (Fase B)
 ```
 
 Toda metrica fica em `results/runs/{timestamp}_{name}/` (config.yaml, metrics.json,
 predictions.parquet, figures/, env.txt) e e agregada em `results/summary.json`.
+
+## Etapa 3 - Tarefa 2: extracao de features MACE-MP-0
+
+Extrai descritores do potencial de fundacao MACE-MP-0 (medium) para cada
+estrutura, em `data/mace_features/{train,val,test}.npz`, alinhados ao split
+canonico (`splits.json`; val recortado do train como no SchNet).
+
+```bash
+uv run python scripts/07_extract_mace_features.py   # ~10 min na RTX 5060 Ti
+```
+
+7 features escalares por estrutura (energias per-atom do MACE):
+`mace_E_total`, `mace_E_per_atom`, `mace_E_H`, `mace_E_neighbors_mean`,
+`mace_E_neighbors_min`, `mace_E_surface_mean`, `mace_n_neighbors`. Embeddings de
+no ficam adiados (a API expoe energias per-atom facilmente; embeddings exigem
+forward manual) — escalares ja bastam para a EDA da Fase A.5. Idempotente
+(`--force` para reextrair). Stats em `results/runs/{ts}_mace_extraction/feature_stats.json`.
+Validacao + smoke: `notebooks/07_mace_smoke.ipynb`.
+
+## Etapa 3 - Fase A.5: EDA e reducao de features MACE
+
+EDA, importancia (SHAP/permutation/RFE) e sweep de reducao sobre as 7 features
+escalares. `notebooks/08_mace_features_eda.ipynb` +
+`scripts/08b_feature_reduction_sweep.py` (gera 8 runs + grafico R² vs #features).
+
+```bash
+uv run python scripts/08b_feature_reduction_sweep.py   # ~6 min, sem GPU
+```
+
+Sweep (ETR, split canonico, vs baselines ETR-handcrafted=0.934 e SchNet=0.908):
+
+| Estrategia | # feat | R² test |
+|------------|--------|---------|
+| all / RFE  | 7 | 0.864 |
+| top-5 SHAP | 5 | 0.863 |
+| top-3 SHAP | 3 | 0.807 |
+| PCA 99% var| 5 | 0.846 |
+| PCA 95% var| 4 | 0.837 |
+| PCA 90% var| 3 | 0.816 |
+| composicao | 16 | 0.863 |
+
+SHAP: `mace_E_H` (0.23) >> `E_neighbors_mean` (0.15) ~ `E_neighbors_min` (0.14)
+>> `n_neighbors` (0.06) >> energias globais (`E_total`/`E_per_atom`/`E_surface_mean`,
+~0.02 cada). A energia de ligacao do H e suas vizinhancas carregam quase toda a
+informacao.
+
+### Achado e decisao (Fase B)
+
+- **Numero final de features: 5** (`E_H`, `E_neighbors_mean`, `E_neighbors_min`,
+  `n_neighbors` + 1). Estrategia vencedora: **top-5 por SHAP** (R²=0.863, contra
+  0.864 com todas — perda desprezivel cortando as 3 energias globais redundantes).
+  PCA nunca supera top-K; composicao (analogia ao phi) nao gerou nada melhor.
+- **Porem o teto das 7 escalares (0.864) fica abaixo dos baselines** (ETR-handcrafted
+  0.934, SchNet 0.908). Energias per-atom do MACE-MP-0, sozinhas, sao menos
+  preditivas que os descritores eletronicos handcrafted para HER.
+- **Decisao: vale ir para a Fase B.** Como ate o conjunto completo de escalares
+  nao alcanca os baselines (features complementares, nao redundantes — heuristica
+  do prompt), o ganho deve vir dos **embeddings de no do MACE** (adiados na
+  Tarefa 2) e/ou fine-tune. Proximo passo concreto: extrair os embeddings
+  invariantes do MACE e repetir esta EDA no espaco ~300-dim antes de decidir
+  fine-tune.
+- **Validacao cross-model (MLP)**: top-5 (0.817) >= all (0.812) > top-3 (0.783),
+  mesma ordem do ETR — o achado "5 features bastam, 3 globais sao redundantes"
+  nao e especifico ao tipo de modelo.
+
+## Etapa 3 - Fase B: embeddings de no do MACE
+
+A Fase A.5 mostrou que os escalares nao bastam, entao extraimos os **embeddings
+de no invariantes (L=0) do MACE-MP-0** e repetimos a EDA/sweep no espaco 512-dim.
+
+```bash
+uv run python scripts/09_extract_mace_embeddings.py          # ~6 min GPU -> *_emb.npz
+uv run python scripts/08b_feature_reduction_sweep.py --feature-set emb
+```
+
+Pooling: `[emb(H), mean(emb(vizinhos<2.4A))]` dos descritores invariantes ->
+512 features. Agora samples/features ~9, entao a reducao importa de fato.
+
+| Estrategia | # feat | R² test |
+|------------|--------|---------|
+| all        | 512 | 0.961 |
+| top-100 SHAP | 100 | 0.961 |
+| top-50 SHAP  | 50 | 0.958 |
+| top-20 SHAP  | 20 | 0.952 |
+| top-10 SHAP  | 10 | 0.940 |
+| PCA 99% var  | 77 | 0.960 |
+| PCA 95% var  | 38 | 0.957 |
+| PCA 90% var  | 26 | 0.956 |
+
+SHAP: as dimensoes do embedding do **H adsorvido** (`embH_*`) dominam — coerente
+com `mace_E_H` ser a escalar mais importante.
+
+### Achado e decisao
+
+- **Os embeddings MACE batem todos os baselines** (0.961 vs handcrafted 0.934,
+  SchNet 0.908, escalares 0.864). Mesmo **top-10 dims (0.940) > 10 handcrafted**.
+- **Numero recomendado: top-20 (0.952)** — sweet spot interpretabilidade/acuracia;
+  top-50 (0.958) se quiser quase o teto. PCA 90% (26 comp, 0.956) tambem otimo.
+- **Decisao: representacao MACE pre-treinada e o caminho.** A cabeca leve (ETR)
+  sobre embeddings frozen ja e o melhor modelo do projeto, sem fine-tune. Proximo
+  passo opcional: fine-tune end-to-end do MACE pode dar ganho marginal, mas o
+  embedding frozen ja supera tudo — o custo/beneficio do fine-tune e questionavel
+  e pode ser discutido como secao da dissertacao.
 
 ## Pipeline
 

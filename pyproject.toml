@@ -12,6 +12,7 @@ dependencies = [
     "ipywidgets>=8.1.8",
     "jupyterlab>=4.5.7",
     "lmdb>=2.2.0",
+    "mace-torch>=0.3.16",
     "matplotlib>=3.10.9",
     "mendeleev>=1.1.0",
     "numpy>=2.4.6",

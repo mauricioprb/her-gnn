@@ -1,0 +1,7 @@
+{
+  "n_structures": 5860,
+  "n_features": 7,
+  "avg_infer_ms": 37.69,
+  "vram_peak_gb": 0.643,
+  "elapsed_sec": 220.86
+}

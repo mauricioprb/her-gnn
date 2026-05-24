@@ -1,0 +1,14 @@
+model: ExtraTreesRegressor
+strategy: top10
+n_features: 10
+features:
+- embH_053
+- embH_115
+- embH_142
+- embH_150
+- embH_188
+- embN_011
+- embH_229
+- embH_019
+- embH_049
+- embH_003

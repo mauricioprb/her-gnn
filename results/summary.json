@@ -26,5 +26,201 @@
     "vram_peak_gb": 0.392,
     "best_ckpt": "/home/mauricio/repositorios/her-gnn/logs/checkpoints/schnet_baseline/epoch=166-step=22044.ckpt",
     "elapsed_sec": 935.0
+  },
+  {
+    "timestamp": "20260523_230708",
+    "name": "mace_extraction",
+    "run_dir": "results/runs/20260523_230708_mace_extraction",
+    "n_structures": 5860,
+    "n_features": 7,
+    "avg_infer_ms": 37.69,
+    "vram_peak_gb": 0.643,
+    "elapsed_sec": 220.86
+  },
+  {
+    "timestamp": "20260523_235413",
+    "name": "etr_mace_all",
+    "run_dir": "results/runs/20260523_235413_etr_mace_all",
+    "r2_test": 0.8643333292773439,
+    "mae_test": 0.1574651803172888,
+    "mse_test": 0.053303230122576276,
+    "rmse_test": 0.23087492311330884,
+    "n_features": 7,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235455",
+    "name": "etr_mace_top3_shap",
+    "run_dir": "results/runs/20260523_235455_etr_mace_top3_shap",
+    "r2_test": 0.8073641335774915,
+    "mae_test": 0.2101336246100556,
+    "mse_test": 0.0756863411115319,
+    "rmse_test": 0.27511150668689216,
+    "n_features": 3,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235547",
+    "name": "etr_mace_top5_shap",
+    "run_dir": "results/runs/20260523_235547_etr_mace_top5_shap",
+    "r2_test": 0.8626936364562275,
+    "mae_test": 0.15975784317532188,
+    "mse_test": 0.05394746295668902,
+    "rmse_test": 0.23226593154547875,
+    "n_features": 5,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235628",
+    "name": "etr_mace_pca90",
+    "run_dir": "results/runs/20260523_235628_etr_mace_pca90",
+    "r2_test": 0.8157574337038623,
+    "mae_test": 0.20169381359870767,
+    "mse_test": 0.07238862616252725,
+    "rmse_test": 0.26905134484430154,
+    "n_features": 3,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235714",
+    "name": "etr_mace_pca95",
+    "run_dir": "results/runs/20260523_235714_etr_mace_pca95",
+    "r2_test": 0.8370795914598215,
+    "mae_test": 0.18479835935252514,
+    "mse_test": 0.06401118256844664,
+    "rmse_test": 0.25300431333960816,
+    "n_features": 4,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235810",
+    "name": "etr_mace_pca99",
+    "run_dir": "results/runs/20260523_235810_etr_mace_pca99",
+    "r2_test": 0.8458971552147353,
+    "mae_test": 0.1720097818304737,
+    "mse_test": 0.060546775080261905,
+    "rmse_test": 0.24606254302567448,
+    "n_features": 5,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260523_235910",
+    "name": "etr_mace_rfe",
+    "run_dir": "results/runs/20260523_235910_etr_mace_rfe",
+    "r2_test": 0.8643333292773439,
+    "mae_test": 0.1574651803172888,
+    "mse_test": 0.053303230122576276,
+    "rmse_test": 0.23087492311330884,
+    "n_features": 7,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_000038",
+    "name": "etr_mace_compose",
+    "run_dir": "results/runs/20260524_000038_etr_mace_compose",
+    "r2_test": 0.8625933301424255,
+    "mae_test": 0.16150695903468956,
+    "mse_test": 0.05398687315595801,
+    "rmse_test": 0.23235075458443857,
+    "n_features": 16,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_002321",
+    "name": "mace_embeddings",
+    "run_dir": "results/runs/20260524_002321_mace_embeddings",
+    "n_structures": 5860,
+    "n_features": 512,
+    "avg_infer_ms": 64.1,
+    "vram_peak_gb": 0.643,
+    "elapsed_sec": 375.6
+  },
+  {
+    "timestamp": "20260524_010118",
+    "name": "etr_emb_all",
+    "run_dir": "results/runs/20260524_010118_etr_emb_all",
+    "r2_test": 0.9613455379564385,
+    "mae_test": 0.07135616644832743,
+    "mse_test": 0.015187279783584032,
+    "rmse_test": 0.1232366819724713,
+    "n_features": 512,
+    "elapsed_sec": 0.01
+  },
+  {
+    "timestamp": "20260524_010135",
+    "name": "etr_emb_top10",
+    "run_dir": "results/runs/20260524_010135_etr_emb_top10",
+    "r2_test": 0.9397489914265567,
+    "mae_test": 0.09564995001095586,
+    "mse_test": 0.02367253031271768,
+    "rmse_test": 0.15385879991965906,
+    "n_features": 10,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010157",
+    "name": "etr_emb_top20",
+    "run_dir": "results/runs/20260524_010157_etr_emb_top20",
+    "r2_test": 0.9516583421702575,
+    "mae_test": 0.08457040514812357,
+    "mse_test": 0.018993364384044607,
+    "rmse_test": 0.13781641551007126,
+    "n_features": 20,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010245",
+    "name": "etr_emb_top50",
+    "run_dir": "results/runs/20260524_010245_etr_emb_top50",
+    "r2_test": 0.9576844223614647,
+    "mae_test": 0.07646676494672186,
+    "mse_test": 0.016625726573976544,
+    "rmse_test": 0.12894078708452397,
+    "n_features": 50,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010420",
+    "name": "etr_emb_top100",
+    "run_dir": "results/runs/20260524_010420_etr_emb_top100",
+    "r2_test": 0.961139089136409,
+    "mae_test": 0.07250800150099236,
+    "mse_test": 0.015268393213315542,
+    "rmse_test": 0.12356533985432785,
+    "n_features": 100,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010450",
+    "name": "etr_emb_pca90",
+    "run_dir": "results/runs/20260524_010450_etr_emb_pca90",
+    "r2_test": 0.9561883096311379,
+    "mae_test": 0.07984895285218854,
+    "mse_test": 0.01721354700716865,
+    "rmse_test": 0.13120040780107603,
+    "n_features": 26,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010531",
+    "name": "etr_emb_pca95",
+    "run_dir": "results/runs/20260524_010531_etr_emb_pca95",
+    "r2_test": 0.9568434239086624,
+    "mae_test": 0.07907863754234704,
+    "mse_test": 0.016956153596499216,
+    "rmse_test": 0.1302157962633536,
+    "n_features": 38,
+    "elapsed_sec": 0.0
+  },
+  {
+    "timestamp": "20260524_010646",
+    "name": "etr_emb_pca99",
+    "run_dir": "results/runs/20260524_010646_etr_emb_pca99",
+    "r2_test": 0.959998369117937,
+    "mae_test": 0.07674487200818929,
+    "mse_test": 0.015716580386525847,
+    "rmse_test": 0.12536578634749534,
+    "n_features": 77,
+    "elapsed_sec": 0.0
   }
 ]

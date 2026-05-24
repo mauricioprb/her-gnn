@@ -1,0 +1,13 @@
+model: MACE-MP-0 medium
+cutoff_neighbors: 2.4
+feature_names:
+- mace_E_total
+- mace_E_per_atom
+- mace_E_H
+- mace_E_neighbors_mean
+- mace_E_neighbors_min
+- mace_E_surface_mean
+- mace_n_neighbors
+n_train: 4220
+n_val: 468
+n_test: 1172
