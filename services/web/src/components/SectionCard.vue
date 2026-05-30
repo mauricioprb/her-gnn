@@ -1,10 +1,13 @@
 <script setup lang="ts">
-defineProps<{
-  title?: string
-  subtitle?: string
-  icon?: string
-  padded?: boolean
-}>()
+withDefaults(
+  defineProps<{
+    title?: string;
+    subtitle?: string;
+    icon?: string;
+    padded?: boolean;
+  }>(),
+  { padded: true },
+);
 </script>
 
 <template>
@@ -31,7 +34,7 @@ defineProps<{
         <slot name="actions" />
       </div>
     </header>
-    <div :class="padded === false ? '' : 'p-5'">
+    <div :class="padded ? 'p-5' : ''">
       <slot />
     </div>
   </section>

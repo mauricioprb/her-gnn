@@ -1,39 +1,41 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { VueQueryPlugin } from '@tanstack/vue-query'
-import PrimeVue from 'primevue/config'
-import Aura from '@primeuix/themes/aura'
-import ToastService from 'primevue/toastservice'
-import ConfirmationService from 'primevue/confirmationservice'
-import { definePreset } from '@primeuix/themes'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { VueQueryPlugin } from "@tanstack/vue-query";
+import PrimeVue from "primevue/config";
+import Aura from "@primeuix/themes/aura";
+import ToastService from "primevue/toastservice";
+import ConfirmationService from "primevue/confirmationservice";
+import { definePreset, palette } from "@primeuix/themes";
 
-import App from '@/App.vue'
-import { router } from '@/router'
-import '@/style.css'
-import '@/charts/setup'
+import App from "@/App.vue";
+import { router } from "@/router";
+import "@/main.css";
+import "@/charts/setup";
+
+const THEME_COLOR = "#38C649";
+
+const SURFACE_LIGHT = "{neutral}";
+const SURFACE_DARK = "{neutral}";
+
+const surface = (color: string) => ({
+  0: "#ffffff",
+  ...(palette(color) as Record<string, string>),
+});
 
 const AetherPreset = definePreset(Aura, {
   semantic: {
-    primary: {
-      50: '{emerald.50}',
-      100: '{emerald.100}',
-      200: '{emerald.200}',
-      300: '{emerald.300}',
-      400: '{emerald.400}',
-      500: '{emerald.500}',
-      600: '{emerald.600}',
-      700: '{emerald.700}',
-      800: '{emerald.800}',
-      900: '{emerald.900}',
-      950: '{emerald.950}',
+    primary: palette(THEME_COLOR),
+    colorScheme: {
+      light: { surface: surface(SURFACE_LIGHT) },
+      dark: { surface: surface(SURFACE_DARK) },
     },
   },
-})
+});
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(createPinia())
-app.use(router)
+app.use(createPinia());
+app.use(router);
 app.use(VueQueryPlugin, {
   queryClientConfig: {
     defaultOptions: {
@@ -44,21 +46,21 @@ app.use(VueQueryPlugin, {
       },
     },
   },
-})
+});
 app.use(PrimeVue, {
   theme: {
     preset: AetherPreset,
     options: {
-      darkModeSelector: '.dark',
+      darkModeSelector: ".dark",
       cssLayer: {
-        name: 'primevue',
-        order: 'theme, base, primevue, components, utilities',
+        name: "primevue",
+        order: "theme, base, primevue, components, utilities",
       },
     },
   },
   ripple: true,
-})
-app.use(ToastService)
-app.use(ConfirmationService)
+});
+app.use(ToastService);
+app.use(ConfirmationService);
 
-app.mount('#app')
+app.mount("#app");

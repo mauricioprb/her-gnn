@@ -1,33 +1,33 @@
-import { http } from './client'
+import { http } from "./client";
 import type {
   ComparisonPredictionsResponse,
   ComparisonResponse,
   ScreenRequest,
   ScreenResponse,
   StatsResponse,
-} from './types'
+} from "./types";
 
 export async function fetchStats(): Promise<StatsResponse> {
-  const { data } = await http.get<StatsResponse>('/stats')
-  return data
+  const { data } = await http.get<StatsResponse>("/stats");
+  return data;
 }
 
 export async function fetchElements(): Promise<string[]> {
-  const { data } = await http.get<{ elements: string[] }>('/elements')
-  return data.elements
+  const { data } = await http.get<{ elements: string[] }>("/elements");
+  return data.elements;
 }
 
 export async function runScreen(req: ScreenRequest): Promise<ScreenResponse> {
-  const { data } = await http.post<ScreenResponse>('/screen', req)
-  return data
+  const { data } = await http.post<ScreenResponse>("/screen", req);
+  return data;
 }
 
 export async function fetchComparison(): Promise<ComparisonResponse> {
-  const { data } = await http.get<ComparisonResponse>('/comparison')
-  return data
+  const { data } = await http.get<ComparisonResponse>("/comparison");
+  return data;
 }
 
 export async function fetchComparisonPredictions(): Promise<ComparisonPredictionsResponse> {
-  const { data } = await http.get<ComparisonPredictionsResponse>('/comparison/predictions')
-  return data
+  const { data } = await http.get<ComparisonPredictionsResponse>("/comparison/predictions");
+  return data;
 }

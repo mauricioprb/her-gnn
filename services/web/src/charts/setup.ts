@@ -1,6 +1,6 @@
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { ScatterChart, LineChart, BarChart } from 'echarts/charts'
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { ScatterChart, LineChart, BarChart } from "echarts/charts";
 import {
   GridComponent,
   TooltipComponent,
@@ -9,7 +9,7 @@ import {
   MarkLineComponent,
   MarkAreaComponent,
   DataZoomComponent,
-} from 'echarts/components'
+} from "echarts/components";
 
 use([
   CanvasRenderer,
@@ -23,4 +23,4 @@ use([
   MarkLineComponent,
   MarkAreaComponent,
   DataZoomComponent,
-])
+]);

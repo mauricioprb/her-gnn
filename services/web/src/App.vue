@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import Toast from 'primevue/toast'
-import ConfirmDialog from 'primevue/confirmdialog'
-import FloatingNavbar from '@/components/FloatingNavbar.vue'
-import ShortcutsDialog from '@/components/ShortcutsDialog.vue'
-import { useGlobalShortcuts } from '@/composables'
+import Toast from "primevue/toast";
+import ConfirmDialog from "primevue/confirmdialog";
+import FloatingNavbar from "@/components/FloatingNavbar.vue";
+import ShortcutsDialog from "@/components/ShortcutsDialog.vue";
+import { useGlobalShortcuts } from "@/composables";
 
-useGlobalShortcuts()
+useGlobalShortcuts();
 </script>
 
 <template>
-  <div class="flex h-full flex-col">
+  <div class="flex h-full flex-col bg-surface-50 dark:bg-surface-900">
     <FloatingNavbar />
 
-    <!-- pt-20 dá espaço para o navbar flutuante (fixed) -->
     <main class="flex-1 overflow-auto bg-surface-50 pt-20 dark:bg-surface-900">
       <RouterView />
     </main>

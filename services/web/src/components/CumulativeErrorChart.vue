@@ -1,42 +1,42 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import VChart from 'vue-echarts'
-import { useDark } from '@vueuse/core'
-import type { ModelPredictions } from '@/api'
+import { computed } from "vue";
+import VChart from "vue-echarts";
+import { useDark } from "@vueuse/core";
+import type { ModelPredictions } from "@/api";
 
 const props = withDefaults(
   defineProps<{
-    models: ModelPredictions[]
-    chemicalAccuracyEv?: number
-    height?: string
+    models: ModelPredictions[];
+    chemicalAccuracyEv?: number;
+    height?: string;
   }>(),
-  { chemicalAccuracyEv: 0.043, height: '380px' },
-)
+  { chemicalAccuracyEv: 0.043, height: "380px" },
+);
 
-const isDark = useDark()
+const isDark = useDark();
 
 const series = computed(() =>
   props.models.map((m) => {
-    const abs = m.y_pred.map((p, i) => Math.abs(p - (m.y_true[i] ?? 0))).sort((a, b) => a - b)
-    const n = abs.length
-    const data = abs.map((x, i) => [x, (i + 1) / n])
+    const abs = m.y_pred.map((p, i) => Math.abs(p - (m.y_true[i] ?? 0))).sort((a, b) => a - b);
+    const n = abs.length;
+    const data = abs.map((x, i) => [x, (i + 1) / n]);
     return {
       name: m.display,
-      type: 'line' as const,
+      type: "line" as const,
       data,
       showSymbol: false,
       smooth: false,
       lineStyle: { color: m.color, width: 2 },
       itemStyle: { color: m.color },
-    }
+    };
   }),
-)
+);
 
 const option = computed(() => {
-  const textColor = isDark.value ? '#cbd5e1' : '#475569'
-  const gridColor = isDark.value ? '#334155' : '#e2e8f0'
+  const textColor = isDark.value ? "#cbd5e1" : "#475569";
+  const gridColor = isDark.value ? "#334155" : "#e2e8f0";
   return {
-    grid: { left: 60, right: 16, top: 24, bottom: 56, containLabel: false },
+    grid: { left: 8, right: 16, top: 32, bottom: 40, containLabel: true },
     legend: {
       top: 0,
       textStyle: { color: textColor, fontSize: 11 },
@@ -44,63 +44,74 @@ const option = computed(() => {
       itemHeight: 4,
     },
     tooltip: {
-      trigger: 'axis' as const,
-      backgroundColor: isDark.value ? '#1e293b' : '#fff',
+      trigger: "axis" as const,
+      backgroundColor: isDark.value ? "#1e293b" : "#fff",
       borderColor: gridColor,
       textStyle: { color: textColor },
       valueFormatter: (v: number) => v.toFixed(4),
     },
     xAxis: {
-      type: 'value' as const,
-      name: 'limite de |erro| (eV)',
-      nameLocation: 'middle' as const,
-      nameGap: 32,
+      type: "value" as const,
+      name: "tamanho do erro (eV)",
+      nameLocation: "middle" as const,
+      nameGap: 24,
       axisLine: { lineStyle: { color: gridColor } },
-      axisLabel: { color: textColor, fontSize: 11 },
+      axisLabel: {
+        color: textColor,
+        fontSize: 10,
+        formatter: (v: number) => v.toFixed(2),
+        hideOverlap: true,
+      },
       splitLine: { lineStyle: { color: gridColor, opacity: 0.4 } },
-      nameTextStyle: { color: textColor, fontSize: 11 },
+      nameTextStyle: { color: textColor, fontSize: 10 },
     },
     yAxis: {
-      type: 'value' as const,
-      name: 'fração de amostras',
-      nameLocation: 'middle' as const,
-      nameGap: 44,
+      type: "value" as const,
+      name: "materiais dentro do limite",
+      nameLocation: "middle" as const,
+      nameGap: 30,
       min: 0,
       max: 1.02,
       axisLine: { lineStyle: { color: gridColor } },
-      axisLabel: { color: textColor, fontSize: 11, formatter: (v: number) => `${(v * 100).toFixed(0)}%` },
+      axisLabel: {
+        color: textColor,
+        fontSize: 10,
+        formatter: (v: number) => `${(v * 100).toFixed(0)}%`,
+      },
       splitLine: { lineStyle: { color: gridColor, opacity: 0.4 } },
-      nameTextStyle: { color: textColor, fontSize: 11 },
+      nameTextStyle: { color: textColor, fontSize: 10 },
     },
     series: [
       ...series.value,
       {
-        name: 'chemical accuracy',
-        type: 'line' as const,
+        name: "margem aceitável",
+        type: "line" as const,
         data: [],
         markLine: {
-          symbol: 'none',
+          symbol: "none",
           silent: true,
           label: {
             color: textColor,
             fontSize: 10,
-            formatter: 'chem. acc. (43 meV)',
+            formatter: "margem aceitável (43 meV)",
           },
-          lineStyle: { color: '#f59e0b', type: 'dashed' as const, width: 1 },
+          lineStyle: { color: "#f59e0b", type: "dashed" as const, width: 1 },
           data: [{ xAxis: props.chemicalAccuracyEv }],
         },
       },
     ],
-  }
-})
+  };
+});
 </script>
 
 <template>
-  <div class="rounded-xl border border-surface-200 bg-surface-0 p-4 shadow-sm dark:border-surface-800 dark:bg-surface-950">
+  <div
+    class="rounded-xl border border-surface-200 bg-surface-0 p-4 shadow-sm dark:border-surface-800 dark:bg-surface-950"
+  >
     <header class="mb-3">
-      <h3 class="text-sm font-semibold">Curvas cumulativas de erro</h3>
+      <h3 class="text-sm font-semibold">Quantos materiais ficam dentro do erro</h3>
       <p class="mt-0.5 text-xs text-surface-500">
-        fração das amostras de teste com |erro| menor que o limite no eixo x · mais alto = melhor
+        % de materiais com erro menor que o valor no eixo x. Mais alto é melhor.
       </p>
     </header>
     <VChart :option="option" :style="{ height }" autoresize />

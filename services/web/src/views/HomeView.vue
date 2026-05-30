@@ -1,59 +1,101 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-import Button from 'primevue/button'
-import Skeleton from 'primevue/skeleton'
+import { RouterLink } from "vue-router";
+import Button from "primevue/button";
+import Skeleton from "primevue/skeleton";
 
-import PageHeader from '@/components/PageHeader.vue'
-import StatPill from '@/components/StatPill.vue'
-import { useStats } from '@/composables'
+import PageHeader from "@/components/PageHeader.vue";
+import StatPill from "@/components/StatPill.vue";
+import SectionLabel from "@/components/SectionLabel.vue";
+import { useStats } from "@/composables";
 
-const stats = useStats()
+const stats = useStats();
+
+const results = [
+  {
+    name: "Método rápido",
+    value: "96%",
+    meta: "o mais certeiro, resposta em segundos",
+    best: true,
+  },
+  {
+    name: "Método detalhado",
+    value: "96%",
+    meta: "analisa a estrutura completa do material",
+    best: false,
+  },
+  {
+    name: "Método simples",
+    value: "93%",
+    meta: "usa poucas características do material",
+    best: false,
+  },
+  { name: "Método experimental", value: "91%", meta: "aprende tudo do zero", best: false },
+];
 
 const features = [
   {
-    icon: 'pi-search',
-    title: 'Triagem por composição',
-    text: 'Defina os metais alvo. Receba os top-N catalisadores ordenados por |ΔG_H|.',
-    to: '/screen',
-    cta: 'Iniciar triagem',
+    icon: "pi-search",
+    title: "Encontre materiais",
+    text: "Escolha os elementos químicos que te interessam e veja os materiais mais promissores, do melhor ao pior.",
+    to: "/screen",
+    cta: "Começar busca",
   },
   {
-    icon: 'pi-chart-bar',
-    title: 'Comparação entre modelos',
-    text: 'ETR + MACE embeddings, MACE Stage A, SchNet e baseline handcrafted lado-a-lado.',
-    to: '/compare',
-    cta: 'Comparar agora',
+    icon: "pi-chart-bar",
+    title: "Compare os métodos",
+    text: "Veja qual método de inteligência artificial acerta mais nas previsões e por quê.",
+    to: "/compare",
+    cta: "Ver comparação",
   },
   {
-    icon: 'pi-info-circle',
-    title: 'Sobre o dataset',
-    text: '5.860 estruturas Catalysis Hub. Split canônico 4.220 / 468 / 1.172.',
-    to: '/about',
-    cta: 'Ver detalhes',
+    icon: "pi-info-circle",
+    title: "Sobre o projeto",
+    text: "Conheça a base com quase 6 mil materiais reais usada para fazer as previsões.",
+    to: "/about",
+    cta: "Saiba mais",
   },
-]
+];
 </script>
 
 <template>
-  <section class="mx-auto max-w-7xl space-y-6 px-6 py-8">
+  <section class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
     <PageHeader
+      stack
       icon="pi-bolt"
-      title="AETHER — triagem de catalisadores HER"
-      subtitle="Predição de ΔG_H com representações pré-treinadas MACE-MP-0 + ETR. Princípio de Sabatier: ΔG_H ≈ 0 é ótimo."
+      title="AETHER: materiais para gerar hidrogênio verde"
+      subtitle="Usamos inteligência artificial para prever quais materiais funcionam melhor para gerar hidrogênio, um combustível limpo. Os melhores prendem o hidrogênio na medida certa: nem forte, nem fraco demais."
     >
       <template #actions>
-        <RouterLink to="/screen">
-          <Button label="Começar triagem" icon="pi pi-arrow-right" icon-pos="right" />
+        <RouterLink to="/screen" class="block w-full sm:w-auto">
+          <Button
+            label="Começar busca"
+            icon="pi pi-arrow-right"
+            icon-pos="right"
+            class="w-full sm:w-auto"
+          />
         </RouterLink>
-        <a href="/api/docs" target="_blank" rel="noopener">
-          <Button label="API docs" icon="pi pi-external-link" severity="secondary" outlined />
-        </a>
       </template>
       <template v-if="stats.data.value">
-        <StatPill icon="pi-database" :value="stats.data.value.n_structures.toLocaleString('pt-BR')" label="estruturas" />
-        <StatPill icon="pi-check-square" :value="stats.data.value.n_test_canonical.toLocaleString('pt-BR')" label="teste canônico" />
-        <StatPill icon="pi-atom" :value="stats.data.value.available_elements.length" label="metais" />
-        <StatPill icon="pi-microchip-ai" :value="stats.data.value.available_models.length" label="modelos" />
+        <StatPill
+          icon="pi-database"
+          :value="stats.data.value.n_structures.toLocaleString('pt-BR')"
+          label="materiais"
+        />
+        <StatPill
+          icon="pi-check-square"
+          :value="stats.data.value.n_test_canonical.toLocaleString('pt-BR')"
+          label="amostras de teste"
+        />
+        <StatPill
+          icon="pi-table"
+          :value="stats.data.value.available_elements.length"
+          label="elementos"
+        />
+        <StatPill
+          icon="pi-microchip-ai"
+          :value="stats.data.value.available_models.length"
+          label="métodos"
+        />
       </template>
       <Skeleton v-else width="24rem" height="2rem" />
     </PageHeader>
@@ -73,45 +115,101 @@ const features = [
         <h3 class="relative text-base font-semibold text-surface-900 dark:text-surface-0">
           {{ f.title }}
         </h3>
-        <p class="relative mt-2 flex-1 text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+        <p
+          class="relative mt-2 flex-1 text-sm leading-relaxed text-surface-600 dark:text-surface-300"
+        >
           {{ f.text }}
         </p>
-        <div class="relative mt-4 flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400">
+        <div
+          class="relative mt-4 flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400"
+        >
           {{ f.cta }}
           <i class="pi pi-arrow-right text-xs transition-transform group-hover:translate-x-1" />
         </div>
       </RouterLink>
     </div>
 
-    <section class="rounded-2xl border border-surface-200 bg-surface-0 p-6 shadow-sm dark:border-surface-800 dark:bg-surface-950">
-      <div class="mb-4 flex items-center gap-2">
-        <span class="grid h-7 w-7 place-items-center rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400">
-          <i class="pi pi-flag text-xs" />
-        </span>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-surface-700 dark:text-surface-200">
-          Principais resultados
-        </h2>
+    <section
+      class="rounded-2xl border border-surface-200 bg-surface-0 p-6 shadow-sm dark:border-surface-800 dark:bg-surface-950"
+    >
+      <SectionLabel icon="pi-globe" title="Por que isso importa" class="mb-5" />
+      <div class="grid gap-5 md:grid-cols-2">
+        <div class="flex gap-3">
+          <span
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400"
+          >
+            <i class="pi pi-bolt text-base" />
+          </span>
+          <div>
+            <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0">
+              Hidrogênio verde
+            </h3>
+            <p class="mt-1 text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+              É o hidrogênio produzido a partir da água com energia renovável, sem emitir carbono.
+              Pode substituir combustíveis fósseis na indústria e no transporte. O maior gargalo é o
+              custo dos materiais que aceleram a reação, e é aí que o AETHER ajuda: encontrando bons
+              materiais mais rápido e mais barato.
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400"
+          >
+            <i class="pi pi-sitemap text-base" />
+          </span>
+          <div>
+            <h3 class="text-sm font-semibold text-surface-900 dark:text-surface-0">
+              Nanociência e nanotecnologia
+            </h3>
+            <p class="mt-1 text-sm leading-relaxed text-surface-600 dark:text-surface-300">
+              A reação acontece na superfície dos materiais, numa escala de bilionésimos de metro.
+              Nessa escala, pequenas mudanças mudam tudo. Estudar e projetar a matéria assim é o
+              trabalho da nanociência e da nanotecnologia, e é o terreno onde o AETHER atua para
+              tornar a produção de hidrogênio mais eficiente.
+            </p>
+          </div>
+        </div>
       </div>
+    </section>
+
+    <section
+      class="rounded-2xl border border-surface-200 bg-surface-0 p-6 shadow-sm dark:border-surface-800 dark:bg-surface-950"
+    >
+      <SectionLabel
+        icon="pi-flag"
+        title="O que já alcançamos"
+        hint="o quanto cada método acerta"
+        class="mb-5"
+      />
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-800 dark:bg-surface-900/60">
-          <div class="text-[10px] font-medium uppercase tracking-wide text-surface-500">ETR + MACE emb</div>
-          <div class="mt-1 font-mono text-xl font-semibold text-primary-600 dark:text-primary-400 tabular-nums">0.961</div>
-          <div class="text-[11px] text-surface-500">R² test · MAE 71 meV</div>
-        </div>
-        <div class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-800 dark:bg-surface-900/60">
-          <div class="text-[10px] font-medium uppercase tracking-wide text-surface-500">MACE Stage A</div>
-          <div class="mt-1 font-mono text-xl font-semibold tabular-nums">0.956 ± 0.002</div>
-          <div class="text-[11px] text-surface-500">R² test n=5 · MAE 71 meV</div>
-        </div>
-        <div class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-800 dark:bg-surface-900/60">
-          <div class="text-[10px] font-medium uppercase tracking-wide text-surface-500">ETR + 10 handcrafted</div>
-          <div class="mt-1 font-mono text-xl font-semibold tabular-nums">0.934</div>
-          <div class="text-[11px] text-surface-500">R² test · MAE 96 meV</div>
-        </div>
-        <div class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-800 dark:bg-surface-900/60">
-          <div class="text-[10px] font-medium uppercase tracking-wide text-surface-500">SchNet (do zero)</div>
-          <div class="mt-1 font-mono text-xl font-semibold tabular-nums">0.911 ± 0.051</div>
-          <div class="text-[11px] text-surface-500">R² test n=5 · MAE 73 meV</div>
+        <div
+          v-for="r in results"
+          :key="r.name"
+          class="relative rounded-xl border p-4 transition"
+          :class="
+            r.best
+              ? 'border-primary-500/40 bg-primary-500/5 ring-1 ring-primary-500/20 dark:border-primary-500/30'
+              : 'border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900/60'
+          "
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-2xs font-medium uppercase tracking-wide text-surface-500">{{
+              r.name
+            }}</span>
+            <i v-if="r.best" class="pi pi-star-fill text-2xs text-amber-500" title="melhor" />
+          </div>
+          <div
+            class="mt-1.5 font-mono text-xl font-semibold tabular-nums"
+            :class="
+              r.best
+                ? 'text-primary-600 dark:text-primary-400'
+                : 'text-surface-900 dark:text-surface-0'
+            "
+          >
+            {{ r.value }}
+          </div>
+          <div class="mt-0.5 text-2xs text-surface-500">{{ r.meta }}</div>
         </div>
       </div>
     </section>
