@@ -79,6 +79,7 @@ screen:                     ## Rank catalysts by |ΔG_H_pred|. Vars: ELEMENTS, T
 # ── REST API ─────────────────────────────────────────────────────────────────
 API_HOST ?= 0.0.0.0
 API_PORT ?= 8000
+WEB_PORT ?= 5173
 api-dev:                    ## Run REST API in dev mode (auto-reload). Open http://localhost:$(API_PORT)/docs
 	.venv/bin/uvicorn --app-dir services/api main:app --host $(API_HOST) --port $(API_PORT) --reload
 
@@ -86,26 +87,37 @@ api:                        ## Run REST API in production mode.
 	.venv/bin/uvicorn --app-dir services/api main:app --host $(API_HOST) --port $(API_PORT) --workers 1
 
 # ── Docker ──────────────────────────────────────────────────────────────────
-docker-build:               ## Build CPU-only API image (aether-api:latest, ~3 GB).
+docker-build:               ## Build both images (api + web).
+	docker compose build
+
+docker-build-api:           ## Build API image only (~7 GB).
 	docker compose build api
 
-docker-up:                  ## Start API container in background (port 8000).
+docker-build-web:           ## Build web image only (~70 MB nginx).
+	docker compose build web
+
+docker-up:                  ## Start full stack (api + web) in background.
+	docker compose up -d
+
+docker-up-api:              ## Start only the API container.
 	docker compose up -d api
 
-docker-logs:                ## Tail API container logs.
-	docker compose logs -f api
+docker-logs:                ## Tail logs of api + web.
+	docker compose logs -f
 
-docker-down:                ## Stop + remove containers.
+docker-down:                ## Stop + remove containers + network.
 	docker compose down
 
 docker-shell:               ## Open shell inside running api container.
 	docker compose exec api bash
 
-docker-test:                ## Smoke test running API (curl /stats + /screen).
+docker-test:                ## Smoke test running stack (curl /stats + /screen + /).
+	@echo "API direct:"
 	@curl -fsS http://localhost:$(API_PORT)/stats | head -1; echo
-	@curl -fsS -X POST http://localhost:$(API_PORT)/screen \
-		-H "Content-Type: application/json" \
-		-d '{"elements":["Pt"],"top":3,"model":"etr_emb","exclude_train":true}' | head -1; echo
+	@echo "API via web proxy:"
+	@curl -fsS http://localhost:$(WEB_PORT)/api/stats | head -1; echo
+	@echo "Web SPA:"
+	@curl -fsS -o /dev/null -w "  HTTP %{http_code} (%{size_download} bytes)\n" http://localhost:$(WEB_PORT)/
 
 # ── End-to-end ───────────────────────────────────────────────────────────────
 pipeline: etr-baseline emb-sweep schnet-multiseed stagea-multiseed report ## Full pipeline (GPU, ~6 h).

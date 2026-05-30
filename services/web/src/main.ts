@@ -10,6 +10,7 @@ import { definePreset } from '@primeuix/themes'
 import App from '@/App.vue'
 import { router } from '@/router'
 import '@/style.css'
+import '@/charts/setup'
 
 const AetherPreset = definePreset(Aura, {
   semantic: {

@@ -5,12 +5,19 @@ import Message from 'primevue/message'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Button from 'primevue/button'
 
+import PageHeader from '@/components/PageHeader.vue'
+import StatPill from '@/components/StatPill.vue'
+import SectionCard from '@/components/SectionCard.vue'
 import ModelCard from '@/components/ModelCard.vue'
 import MaeBarChart from '@/components/MaeBarChart.vue'
-import { useComparison } from '@/composables'
+import CumulativeErrorChart from '@/components/CumulativeErrorChart.vue'
+import ParityScatter from '@/components/ParityScatter.vue'
+import { useComparison, useComparisonPredictions } from '@/composables'
 
-const { data, isLoading, error } = useComparison()
+const { data, isLoading, error, refetch } = useComparison()
+const { data: preds, isLoading: loadingPreds } = useComparisonPredictions()
 
 const sortedByR2 = computed(() =>
   [...(data.value?.models ?? [])].sort((a, b) => b.r2_test - a.r2_test),
@@ -45,52 +52,102 @@ function kindSeverity(k: string): 'secondary' | 'info' | 'success' {
 </script>
 
 <template>
-  <section class="mx-auto max-w-7xl px-6 py-8">
-    <header class="mb-6">
-      <h1 class="text-2xl font-semibold tracking-tight">Comparação de modelos</h1>
-      <p class="mt-1 text-sm text-surface-500">
-        4 modelos finais avaliados no mesmo test set canônico (1172 estruturas). Modelos não-determinísticos
-        reportados como mean ± std sobre 5 seeds.
-      </p>
-    </header>
+  <section class="mx-auto max-w-7xl space-y-6 px-6 py-8">
+    <PageHeader
+      icon="pi-chart-bar"
+      title="Comparação de modelos"
+      subtitle="4 modelos finais avaliados no mesmo test set canônico (1.172 estruturas). Multi-seed reportado como mean ± std."
+    >
+      <template v-if="data">
+        <StatPill icon="pi-chart-line" :value="data.models.length" label="modelos" />
+        <StatPill icon="pi-asterisk" value="1.172" label="test canônico" />
+        <StatPill icon="pi-bullseye" :value="`${(data.chemical_accuracy_eV * 1000).toFixed(0)} meV`" label="chemical accuracy" />
+      </template>
+    </PageHeader>
 
     <div v-if="isLoading" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <Skeleton v-for="i in 4" :key="i" height="14rem" />
     </div>
 
     <Message v-else-if="error" severity="error" :closable="false">
-      Falha ao carregar comparação: {{ error.message }}
+      <div class="flex items-center justify-between gap-3">
+        <span>Falha ao carregar comparação: {{ error.message }}</span>
+        <Button label="Tentar novamente" icon="pi pi-refresh" size="small" @click="refetch()" />
+      </div>
     </Message>
 
     <template v-else-if="data">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ModelCard
-          v-for="m in sortedByR2"
-          :key="m.display"
-          :model="m"
-          :best-r2="bestR2"
-          :best-mae-me-v="bestMaeMeV"
-          :best-frac-chem="bestFracChem"
-          :best-rmse="bestRmse"
-        />
-      </div>
+      <section class="space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="grid h-7 w-7 place-items-center rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400">
+            <i class="pi pi-th-large text-xs" />
+          </span>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-surface-700 dark:text-surface-200">
+            Resumo por modelo
+          </h2>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ModelCard
+            v-for="m in sortedByR2"
+            :key="m.display"
+            :model="m"
+            :best-r2="bestR2"
+            :best-mae-me-v="bestMaeMeV"
+            :best-frac-chem="bestFracChem"
+            :best-rmse="bestRmse"
+          />
+        </div>
+      </section>
 
-      <div class="mt-6">
-        <MaeBarChart :models="data.models" :chemical-accuracy-ev="data.chemical_accuracy_eV" />
-      </div>
+      <section class="space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="grid h-7 w-7 place-items-center rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400">
+            <i class="pi pi-chart-line text-xs" />
+          </span>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-surface-700 dark:text-surface-200">
+            Diagnósticos cross-modelo
+          </h2>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+          <MaeBarChart :models="data.models" :chemical-accuracy-ev="data.chemical_accuracy_eV" />
+          <CumulativeErrorChart
+            v-if="preds"
+            :models="preds.models"
+            :chemical-accuracy-ev="preds.chemical_accuracy_eV"
+          />
+          <div
+            v-else-if="loadingPreds"
+            class="grid h-full place-items-center rounded-2xl border border-surface-200 bg-surface-0 p-6 shadow-sm dark:border-surface-800 dark:bg-surface-950"
+          >
+            <span class="text-xs text-surface-500">Carregando curvas…</span>
+          </div>
+        </div>
 
-      <div
-        class="mt-6 rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-800 dark:bg-surface-950"
+        <div v-if="preds" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ParityScatter
+            v-for="m in preds.models"
+            :key="m.display"
+            :y-true="m.y_true"
+            :y-pred="m.y_pred"
+            :title="m.display"
+            :color="m.color"
+            height="240px"
+          />
+        </div>
+      </section>
+
+      <SectionCard
+        title="Tabela completa"
+        subtitle="Ordenada por R² test. Multi-seed reportado como mean ± std (n=5)."
+        icon="pi-table"
+        :padded="false"
       >
-        <header class="border-b border-surface-200 px-5 py-3 text-sm font-semibold dark:border-surface-800">
-          Tabela completa
-        </header>
         <DataTable :value="sortedByR2" striped-rows class="text-sm!">
           <Column field="display" header="Modelo">
             <template #body="{ data: row }">
               <div class="flex items-center gap-2">
                 <span class="inline-block h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: row.color }"></span>
-                {{ row.display }}
+                <span class="font-medium">{{ row.display }}</span>
               </div>
             </template>
           </Column>
@@ -135,11 +192,13 @@ function kindSeverity(k: string): 'secondary' | 'info' | 'success' {
           </Column>
           <Column field="n_seeds" header="Seeds">
             <template #body="{ data: row }">
-              {{ row.is_multiseed ? `n=${row.n_seeds}` : '—' }}
+              <span class="text-xs text-surface-500">
+                {{ row.is_multiseed ? `n=${row.n_seeds}` : 'determinístico' }}
+              </span>
             </template>
           </Column>
         </DataTable>
-      </div>
+      </SectionCard>
     </template>
   </section>
 </template>

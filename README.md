@@ -123,28 +123,40 @@ Saída: tabela com `chemical_formula`, `facet`, `site_type`, `dG_pred`,
 Filtro `--elements E1 E2 ...`: retorna estruturas que contêm **todos** os
 metais informados (pode ter outros). H é sempre adsorbato, ignorado no filtro.
 
-## Docker
+## Docker (stack completo: API + Web)
 
-Imagem CPU-only do API. Dados/checkpoints montados como volumes (não vão no
-image, ~3GB final).
+Dois services em `docker-compose.yml`:
+
+| Service | Image | Porta | Descrição |
+| --- | --- | --- | --- |
+| `api` | `aether-api:latest` (~7 GB) | 8000 | FastAPI + ETR + MACE (CPU) |
+| `web` | `aether-web:latest` (~70 MB) | 5173 | Vue 3 + Nginx servindo SPA + proxy `/api/*` |
 
 ```bash
-make docker-build              # builda aether-api:latest (~10-15 min na 1ª vez)
-make docker-up                 # sobe container em background, porta 8000
-make docker-logs               # tail logs
-make docker-test               # curl /stats + /screen
-make docker-down               # para + remove
-make docker-shell              # bash dentro do container
+make docker-build        # builda os 2 (api ~15min, web ~2min na 1ª vez)
+make docker-up           # sobe stack completo em background
+make docker-logs         # tail dos dois services
+make docker-test         # curl /stats direto + via proxy + SPA HTTP 200
+make docker-down         # para tudo + remove network
+make docker-shell        # bash no api container
+
+make docker-up-api       # apenas API (sem frontend)
 ```
 
-`docker-compose.yml` monta:
-- `./data` → `/app/data` (read-only) - SQLite + embeddings MACE
-- `./logs/checkpoints` → `/app/logs/checkpoints` (read-only) - MACE Stage A ckpts
-- `./data/model_cache` → `/app/data/model_cache` (writable) - pickle ETR persiste entre restarts
+Acesso após `make docker-up`:
 
-Pra GPU (NVIDIA Docker): descomentar service `api-gpu` no `docker-compose.yml`.
-Sem GPU funciona perfeitamente - `etr_emb` é CPU-only, `stagea` roda CPU mas
-~40× mais lento por estrutura.
+- Web UI: <http://localhost:5173>
+- API direta: <http://localhost:8000>
+- API via proxy do web: <http://localhost:5173/api/...> (mesma origem, sem CORS)
+- OpenAPI docs: <http://localhost:8000/docs>
+
+Volumes montados no container da API:
+- `./data` → `/app/data` (read-only) — SQLite + embeddings MACE
+- `./logs/checkpoints` → `/app/logs/checkpoints` (read-only) — MACE Stage A ckpts
+- `./data/model_cache` → `/app/data/model_cache` (writable) — pickle ETR persiste entre restarts
+
+GPU **não** é obrigatória. `etr_emb` é CPU-only por design; `stagea` roda CPU
+mas ~40× mais lento por estrutura.
 
 ## REST API
 

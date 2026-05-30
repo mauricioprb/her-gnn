@@ -101,7 +101,7 @@ function downloadCsv() {
       :rows-per-page-options="[10, 15, 25, 50]"
       removable-sort
       sort-mode="single"
-      class="!text-sm"
+      class="text-sm!"
     >
       <Column header="#" header-style="width: 3rem" body-style="font-variant-numeric: tabular-nums; color: var(--p-text-muted-color)">
         <template #body="{ index }">{{ index + 1 }}</template>
