@@ -35,8 +35,8 @@ RUN uv sync --no-install-project --frozen && \
     rm -rf /root/.cache/uv /root/.cache/pip /tmp/*
 
 COPY src/ ./src/
-COPY app/ ./app/
+COPY services/api/ ./services/api/
 
 EXPOSE 8000
 
-CMD [".venv/bin/uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD [".venv/bin/uvicorn", "--app-dir", "services/api", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

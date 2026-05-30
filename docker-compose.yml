@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: services/api/Dockerfile
     image: aether-api:latest
     container_name: aether-api
     restart: unless-stopped
@@ -22,12 +22,20 @@ services:
       retries: 3
       start_period: 60s
 
-  # api-gpu:
-  #   extends: api
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
+  web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    image: aether-web:latest
+    container_name: aether-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-5173}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - VITE_API_BASE_URL=http://localhost:${API_PORT:-8000}
+    profiles:
+      - web
+

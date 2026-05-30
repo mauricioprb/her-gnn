@@ -80,10 +80,10 @@ screen:                     ## Rank catalysts by |ΔG_H_pred|. Vars: ELEMENTS, T
 API_HOST ?= 0.0.0.0
 API_PORT ?= 8000
 api-dev:                    ## Run REST API in dev mode (auto-reload). Open http://localhost:$(API_PORT)/docs
-	.venv/bin/uvicorn app.api:app --host $(API_HOST) --port $(API_PORT) --reload
+	.venv/bin/uvicorn --app-dir services/api main:app --host $(API_HOST) --port $(API_PORT) --reload
 
 api:                        ## Run REST API in production mode.
-	.venv/bin/uvicorn app.api:app --host $(API_HOST) --port $(API_PORT) --workers 1
+	.venv/bin/uvicorn --app-dir services/api main:app --host $(API_HOST) --port $(API_PORT) --workers 1
 
 # ── Docker ──────────────────────────────────────────────────────────────────
 docker-build:               ## Build CPU-only API image (aether-api:latest, ~3 GB).
