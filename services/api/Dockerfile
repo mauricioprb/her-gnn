@@ -36,10 +36,21 @@ RUN uv sync --no-install-project --frozen && \
 
 COPY src/ ./src/
 COPY services/api/ ./services/api/
+# results/ is small (~16 MB) and fully git-tracked; bake it in so /comparison
+# works without a volume. The heavy data/ + logs/checkpoints/ are downloaded
+# at boot by entrypoint.sh into persistent volumes.
+COPY results/ ./results/
+COPY services/api/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN useradd --create-home --uid 1000 app && chown -R app:app /app
+# Create the volume mountpoints in the image so fresh named volumes inherit
+# app:app ownership (Docker copies the dir's ownership on first mount).
+# Then drop privileges: run as a non-root user.
+RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    mkdir -p /app/data /app/logs/checkpoints && \
+    useradd --create-home --uid 1000 app && chown -R app:app /app
 USER app
 
 EXPOSE 8000
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD [".venv/bin/uvicorn", "--app-dir", "services/api", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

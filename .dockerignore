@@ -1,6 +1,5 @@
 data/
 logs/
-results/
 notebooks/
 training_runs.log
 pipeline.pid

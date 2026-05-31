@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import glob
 import hashlib
+import hmac
 import json
 import logging
+import os
 import pickle
 import sqlite3
 from dataclasses import dataclass
@@ -32,6 +34,9 @@ SPLITS_PATH = Path("data/splits.json")
 STAGEA_CKPT_PATTERN = "logs/checkpoints/mace_ft_stageA_v2_seed*/last.ckpt"
 MODEL_CACHE_DIR = Path("data/model_cache")
 ETR_CACHE_PATH = MODEL_CACHE_DIR / "etr_emb.pkl"
+
+_ETR_CACHE_KEY = os.environ.get("ETR_CACHE_KEY", "").encode()
+_HMAC_LEN = 32  # sha256 digest size
 
 
 @lru_cache(maxsize=1)
@@ -110,6 +115,32 @@ def _embedding_fingerprint() -> str:
     return h.hexdigest()[:16]
 
 
+def _load_signed_cache(path: Path) -> dict:
+    """Read an HMAC-tagged pickle, verifying authenticity before unpickling.
+
+    Raises if no key is configured or the tag does not match, so a tampered
+    cache file can never reach ``pickle.loads``.
+    """
+    if not _ETR_CACHE_KEY:
+        raise ValueError("ETR_CACHE_KEY not set - on-disk cache untrusted")
+    raw = path.read_bytes()
+    sig, blob = raw[:_HMAC_LEN], raw[_HMAC_LEN:]
+    expected = hmac.new(_ETR_CACHE_KEY, blob, "sha256").digest()
+    if not hmac.compare_digest(sig, expected):
+        raise ValueError("ETR cache HMAC mismatch - refusing to unpickle")
+    return pickle.loads(blob)
+
+
+def _save_signed_cache(path: Path, obj: dict) -> None:
+    """Write an HMAC-tagged pickle. No-op (warns) when no key is configured."""
+    if not _ETR_CACHE_KEY:
+        logger.warning("ETR_CACHE_KEY not set - skipping disk cache write")
+        return
+    blob = pickle.dumps(obj, protocol=-1)
+    sig = hmac.new(_ETR_CACHE_KEY, blob, "sha256").digest()
+    path.write_bytes(sig + blob)
+
+
 @lru_cache(maxsize=1)
 def _etr_model():
     """Load cached ETR if fingerprint matches; else fit + save. Cached in-process."""
@@ -119,7 +150,7 @@ def _etr_model():
     fp = _embedding_fingerprint()
     if ETR_CACHE_PATH.exists():
         try:
-            cached = pickle.loads(ETR_CACHE_PATH.read_bytes())
+            cached = _load_signed_cache(ETR_CACHE_PATH)
             if cached.get("fingerprint") == fp:
                 logger.info("loaded cached ETR from %s (fingerprint=%s)",
                              ETR_CACHE_PATH, fp)
@@ -139,8 +170,7 @@ def _etr_model():
     model = ExtraTreesRegressor(n_estimators=300, max_depth=None, min_samples_leaf=1,
                                  random_state=42, n_jobs=-1)
     model.fit(X, y)
-    ETR_CACHE_PATH.write_bytes(pickle.dumps({"fingerprint": fp, "model": model},
-                                              protocol=-1))
+    _save_signed_cache(ETR_CACHE_PATH, {"fingerprint": fp, "model": model})
     logger.info("saved ETR cache to %s", ETR_CACHE_PATH)
     return model
 

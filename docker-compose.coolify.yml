@@ -4,21 +4,20 @@ services:
       context: .
       dockerfile: services/api/Dockerfile
     image: aether-api:latest
-    container_name: aether-api
     restart: unless-stopped
     expose:
       - "8000"
-    volumes:
-      - ./data:/app/data:ro
-      - ./logs/checkpoints:/app/logs/checkpoints:ro
-      - ./data/model_cache:/app/data/model_cache
-      - ./results:/app/results:ro
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app/src
-      - ETR_CACHE_KEY=${ETR_CACHE_KEY:-}
+      - ARTIFACTS_URL=${ARTIFACTS_URL}
+      - ARTIFACTS_SHA256=${ARTIFACTS_SHA256}
+      - ETR_CACHE_KEY=${ETR_CACHE_KEY}
       - API_KEY=${API_KEY:-}
-      - ENABLE_DOCS=${ENABLE_DOCS:-1}
+      - ENABLE_DOCS=${ENABLE_DOCS:-0}
+    volumes:
+      - aether-data:/app/data
+      - aether-checkpoints:/app/logs/checkpoints
     healthcheck:
       test:
         [
@@ -27,8 +26,8 @@ services:
         ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 300s
     networks:
       - aether
 
@@ -39,15 +38,20 @@ services:
       args:
         VITE_API_BASE_URL: /api
     image: aether-web:latest
-    container_name: aether-web
     restart: unless-stopped
-    ports:
-      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-5173}:80"
+    environment:
+      - SERVICE_FQDN_WEB_80
+    expose:
+      - "80"
     depends_on:
       api:
         condition: service_healthy
     networks:
       - aether
+
+volumes:
+  aether-data:
+  aether-checkpoints:
 
 networks:
   aether:

@@ -58,7 +58,6 @@ export interface ModelComparisonRow {
   frac_chem_acc_test: number | null;
   n_params: number | null;
   elapsed_sec: number | null;
-  run_dir: string;
 }
 
 export interface ComparisonResponse {

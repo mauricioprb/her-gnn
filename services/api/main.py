@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import logging
+import os
+import secrets
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from screening import (
@@ -21,6 +24,8 @@ logging.basicConfig(level=logging.INFO,
                      format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                      datefmt="%H:%M:%S")
 
+_DOCS_ENABLED = os.environ.get("ENABLE_DOCS", "0") == "1"
+
 app = FastAPI(
     title="AETHER HER catalyst screening API",
     description=(
@@ -29,7 +34,27 @@ app = FastAPI(
         "or MACE Stage A fine-tune, rank by |ΔG_H_pred| (Sabatier ≈ 0)."
     ),
     version="0.1.0",
+    docs_url="/docs" if _DOCS_ENABLED else None,
+    redoc_url="/redoc" if _DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if _DOCS_ENABLED else None,
 )
+
+_API_KEY = os.environ.get("API_KEY", "")
+
+
+def require_api_key(x_api_key: str = Header(default="")) -> None:
+    if not _API_KEY:
+        return
+    if not secrets.compare_digest(x_api_key, _API_KEY):
+        raise HTTPException(status_code=401, detail="invalid or missing API key")
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request, exc):
+    """Never leak stack traces / internal paths to clients. Log full detail
+    server-side, return a generic 500."""
+    logger.exception("unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
 
 class ScreenRequest(BaseModel):
@@ -97,7 +122,6 @@ class ModelComparisonRow(BaseModel):
     frac_chem_acc_test: float | None = None
     n_params: int | None = None
     elapsed_sec: float | None = None
-    run_dir: str
 
 
 class ComparisonResponse(BaseModel):
@@ -206,25 +230,28 @@ def comparison():
             frac_chem_acc_test=(means or {}).get("frac_chem_acc_test", entry.get("frac_chem_acc_test")),
             n_params=entry.get("n_params"),
             elapsed_sec=entry.get("elapsed_sec"),
-            run_dir=entry.get("run_dir", ""),
         ))
     return ComparisonResponse(models=rows)
 
 
-@app.post("/screen", response_model=ScreenResponse, tags=["screen"])
+@app.post("/screen", response_model=ScreenResponse, tags=["screen"],
+          dependencies=[Depends(require_api_key)])
 def screen_endpoint(req: ScreenRequest):
     """Run screening with the given query and return ranked top-N candidates."""
     try:
         result = screen(elements=req.elements, top=req.top,
                         model=req.model, exclude_train=req.exclude_train)
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        logger.error("screen artifact missing: %s", exc)
+        raise HTTPException(status_code=503, detail="service temporarily unavailable")
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        logger.warning("bad screen request: %s", exc)
+        raise HTTPException(status_code=400, detail="invalid screening parameters")
     return ScreenResponse(**result.__dict__)
 
 
-@app.get("/screen", response_model=ScreenResponse, tags=["screen"])
+@app.get("/screen", response_model=ScreenResponse, tags=["screen"],
+         dependencies=[Depends(require_api_key)])
 def screen_get(
     elements: list[str] = Query(..., min_length=1, max_length=20,
                                   description="Required metals (repeatable: ?elements=Pt&elements=Ni)"),
